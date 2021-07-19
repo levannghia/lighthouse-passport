@@ -7,21 +7,32 @@ scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date
 type Query {
     # users: [User!]! @paginate(defaultCount: 10)
     # users: [User!]! @all
-    users: [User!]! @guard(with: ["api"]) @paginate(type: "paginator" model: "App\\Models\\User")
+    # users: [User!]! @guard(with: ["api"]) @paginate(type: "paginator" model: "App\\Models\\User")
+    me: User @auth(guard: "api") 
     user(id: ID @eq): User @find
 }
 
-
 type Mutation {
-    login(input: LoginInput @spread): AuthPayload! @field(resolver: "Joselfonseca\\LighthouseGraphQLPassport\\GraphQL\\Mutations\\Login@resolve")
-    refreshToken(input: RefreshTokenInput @spread): RefreshTokenPayload! @field(resolver: "Joselfonseca\\LighthouseGraphQLPassport\\GraphQL\\Mutations\\RefreshToken@resolve")
-    logout: LogoutResponse! @field(resolver: "Joselfonseca\\LighthouseGraphQLPassport\\GraphQL\\Mutations\\Logout@resolve")
-    forgotPassword(input: ForgotPasswordInput! @spread): ForgotPasswordResponse! @field(resolver: "Joselfonseca\\LighthouseGraphQLPassport\\GraphQL\\Mutations\\ForgotPassword@resolve")
-    updateForgottenPassword(input: NewPasswordWithCodeInput @spread): ForgotPasswordResponse! @field(resolver: "Joselfonseca\\LighthouseGraphQLPassport\\GraphQL\\Mutations\\ResetPassword@resolve")
-    register(input: RegisterInput @spread): RegisterResponse! @field(resolver: "Joselfonseca\\LighthouseGraphQLPassport\\GraphQL\\Mutations\\Register@resolve")
-    socialLogin(input: SocialLoginInput! @spread): AuthPayload! @field(resolver: "Joselfonseca\\LighthouseGraphQLPassport\\GraphQL\\Mutations\\SocialLogin@resolve")
-    verifyEmail(input: VerifyEmailInput! @spread): AuthPayload! @field(resolver: "Joselfonseca\\LighthouseGraphQLPassport\\GraphQL\\Mutations\\VerifyEmail@resolve")
-    updatePassword(input: UpdatePassword! @spread): UpdatePasswordResponse! @field(resolver: "Joselfonseca\\LighthouseGraphQLPassport\\GraphQL\\Mutations\\UpdatePassword@resolve") @guard(with: ["api"])
+    signin(email: String!, password: String!): String @field(resolver: "UserMutation@login")
+    createUser(
+        name: String!
+        email: String!
+        password: String!
+    ): CreateUserPayload! @field(resolver: "UserCRUD@create")
+
+    updateUser(id: ID!, name: String): User @field(resolver: "UserCRUD@update")
+
+    deleteUser (id: ID!): DeleteResponse @field(resolver: "UserCRUD@delete")
+}
+
+type DeleteResponse {
+    status: String!
+    message: String!
+}
+
+type CreateUserPayload {
+    user: User
+    token: String
 }
 
 type User {
